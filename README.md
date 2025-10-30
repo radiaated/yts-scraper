@@ -5,7 +5,6 @@ Fetch YTS movie data by **IMDB ID**
 ### Usage
 
 ```javascript
-import YtsScraper from "yts-scraper"
 ...
 const yts = new YtsScraper(imdbId: string);
 ...

@@ -1,1 +1,1 @@
-export * as YtsScraper from "./module/YtsScraper.js";
+export * from "./module/YtsScraper.js";
