@@ -1,5 +1,4 @@
 node_modules/
 test/
 package-lock.json
-dist/
 radiaated-yts-scraper-*.tgz
