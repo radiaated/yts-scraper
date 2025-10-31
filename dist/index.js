@@ -82,7 +82,7 @@ var Scraper = class _Scraper {
         throw new Error("No torrents available for the given IMDb ID.");
       }
       const ytsData = torrentList.toArray().map((modalTorEl) => {
-        const quality = $(modalTorEl).find(".modal-quality").attr("id") || null;
+        const quality = $(modalTorEl).find(".modal-quality").attr("id")?.split("-").pop() || null;
         const qualitySizes = $(modalTorEl).find(".quality-size").toArray().map((qualitySizeEl) => $(qualitySizeEl).text().trim());
         const qualityType = qualitySizes[0] || null;
         const fileSize = qualitySizes[1] || null;
