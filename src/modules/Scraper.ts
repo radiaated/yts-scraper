@@ -1,42 +1,54 @@
 import * as cheerio from "cheerio";
 
+import type { YtsData } from "../types/YtsData";
+
 /**
  * A scraper class for fetching magnet URIs of movies from YTS.mx using an IMDb ID.
  *
  * This class:
- *  - Queries YTS's AJAX API with an IMDb ID to find the movie page.
- *  - Scrapes the YTS movie page to extract torrent magnet links and related info.
+ *  - Queries YTS's AJAX search API with an IMDb ID to find matching movies.
+ *  - Retrieves the first matching movie's page URL.
+ *  - Scrapes the YTS movie page to extract torrent magnet links along with
+ *    their quality, type, and file size.
+ *
+ * Updated behavior:
+ *  - Throws an error if the IMDb ID is invalid or the movie does not exist on YTS.
+ *  - Throws an error if the movie exists but has no torrents available.
+ *  - Returns `null` if any fetch or parsing step fails, while logging the error.
  */
-class YtsScraper {
+export class Scraper {
   // Base URL for YTS's AJAX search API.
   static YTS_QUERY_API = "https://yts.mx/ajax/search?query";
 
+  imdbID: string;
   /**
    * Constructor initializes the scraper with an IMDb ID.
    * @param {string} imdbID - The IMDb ID of the movie (e.g., tt1234567).
    */
-  constructor(imdbID) {
+  constructor(imdbID: string) {
     this.imdbID = imdbID;
   }
 
   /**
    * Fetches magnet URIs for the movie associated with the IMDb ID.
    *
-   * @returns {Promise<Array<Object>>} - Returns an array of objects containing:
+   * @returns {Promise<Array<YtsData>>} - Returns an array of objects containing:
    *  - `quality`: The resolution quality (e.g., "720p", "1080p").
    *  - `qualityType`: The video encoding type (e.g., "WEB", "BluRay").
-   *  - `fileSize`: The file size of the torrent.
+   *  - `fileSize`: The file size of the torrent (e.g., "1.4 GB").
    *  - `magnetUri`: The magnet download URI.
    *
    * Throws descriptive errors if:
-   *  - The IMDb ID is invalid or not found in YTS.
+   *  - The IMDb ID is invalid or no matching movie is found on YTS.
    *  - The movie exists but has no torrents available.
+   *
+   * Returns `null` if there is a network or parsing error, with error logged to console.
    */
-  async get() {
+  async get(): Promise<YtsData[] | null> {
     try {
       // Step 1: Query YTS API with the IMDb ID to find the corresponding YTS movie URL.
       const movieLinkRes = await fetch(
-        `${YtsScraper.YTS_QUERY_API}=${this.imdbID}`
+        `${Scraper.YTS_QUERY_API}=${this.imdbID}`
       );
 
       const movieLinkJson = await movieLinkRes.json();
@@ -67,21 +79,26 @@ class YtsScraper {
       }
 
       // Step 6: Extract relevant torrent data from each modal.
-      const magnetUris = torrentList.toArray().map((modalTorEl) => {
+      const ytsData = torrentList.toArray().map((modalTorEl) => {
         // Extract quality (e.g., "720p", "1080p", "2160p").
-        const quality = $(modalTorEl).find(".modal-quality").attr("id");
+        const quality = $(modalTorEl).find(".modal-quality").attr("id") || null;
 
         // Extract both quality type and file size.
-        const qualitySize = $(modalTorEl)
+        const qualitySizes = $(modalTorEl)
           .find(".quality-size")
           .toArray()
           .map((qualitySizeEl) => $(qualitySizeEl).text().trim());
 
-        const qualityType = qualitySize[0]; // e.g., "WEB", "BluRay"
-        const fileSize = qualitySize[1]; // e.g., "1.4 GB"
+        const qualityType = qualitySizes[0] || null;
+
+        const fileSize = qualitySizes[1] || null; // e.g., "1.4 GB"
 
         // Extract the magnet download link.
         const magnetUri = $(modalTorEl).find(".magnet-download").attr("href");
+
+        if (!magnetUri) {
+          throw new Error("Error fetching ytts data");
+        }
 
         return {
           quality,
@@ -92,13 +109,11 @@ class YtsScraper {
       });
 
       // Step 7: Return structured list of magnet URIs.
-      return magnetUris;
+      return ytsData;
     } catch (ex) {
-      // Log errors for debugging; rethrow or handle as needed.
-      console.error(ex.message || ex);
-      return;
+      // Log errors for debugging; return null on failure.
+      console.error(ex);
+      return null;
     }
   }
 }
-
-export default YtsScraper;

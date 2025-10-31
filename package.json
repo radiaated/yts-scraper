@@ -1,20 +1,41 @@
 {
-  "type": "module",
-  "name": "yts-scraper",
+  "name": "@radiaated/yts-scraper",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Scrape YTS movie data by IMDB ID",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "require": "./dist/index.js"
+      }
+    }
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsup"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/radiaated/yts-scraper"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "yts",
+    "scraper",
+    "movies"
+  ],
+  "author": "radiaated",
   "license": "MIT",
-  "description": "Scrape YTS movie data by IMDB ID",
   "dependencies": {
     "cheerio": "^1.1.2"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
   }
 }
