@@ -81,7 +81,9 @@ export class Scraper {
       // Step 6: Extract relevant torrent data from each modal.
       const ytsData = torrentList.toArray().map((modalTorEl) => {
         // Extract quality (e.g., "720p", "1080p", "2160p").
-        const quality = $(modalTorEl).find(".modal-quality").attr("id") || null;
+        const quality =
+          $(modalTorEl).find(".modal-quality").attr("id")?.split("-").pop() ||
+          null;
 
         // Extract both quality type and file size.
         const qualitySizes = $(modalTorEl)
