@@ -6,9 +6,16 @@ Fetch YTS movie data by **IMDB ID**
 
 ```javascript
 ...
-const yts = new YtsScraper(imdbId: string);
+// ESM
+import * as ytscpr from "@radiaated/yts-scraper";
+
+// CJS
+const ytscpr = require("@radiaated/yts-scraper");
+
+const scraper = new ytscpr.Scraper(imdbId: string);
 ...
-await yts.get();
+// Access YTS data
+const data: ytscpr.YtsData[] | null = await scraper.get();
 ```
 
 `YtsScraper.get()` method returns an array of objects:
